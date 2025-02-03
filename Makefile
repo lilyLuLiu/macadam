@@ -7,6 +7,7 @@ VERSION_LDFLAGS=-X github.com/cfergeau/macadam/pkg/cmdline.gitVersion=$(GIT_VERS
 # These require external C libraries and their headers, it's simpler to disable
 # them for now. Hopefully podman-machine does not use these features.
 BUILDTAGS=containers_image_openpgp exclude_graphdriver_btrfs btrfs_noversion
+WINBUILDTAGS=remote ${BUILDTAGS}  
 
 DEFAULT_GOOS=$(shell go env GOOS)
 DEFAULT_GOARCH=$(shell go env GOARCH)
@@ -51,7 +52,7 @@ bin/macadam-linux-arm64: force-build
 bin/macadam-windows-amd64: GOOS=windows
 bin/macadam-windows-amd64: GOARCH=amd64
 bin/macadam-windows-amd64: force-build
-	go build -tags "$(BUILDTAGS)" -ldflags "$(VERSION_LDFLAGS)" -o bin/macadam-$(GOOS)-$(GOARCH) ./cmd/macadam
+	go build -tags "$(WINBUILDTAGS)" -ldflags "$(VERSION_LDFLAGS)" -o bin/macadam-$(GOOS)-$(GOARCH) ./cmd/macadam
 
 .PHONY: lint
 lint: $(TOOLS_BINDIR)/golangci-lint
