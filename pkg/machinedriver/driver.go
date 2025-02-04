@@ -501,6 +501,10 @@ func (d *Driver) Kill() error {
 
 // Remove a host
 func (d *Driver) Remove() error {
+	return d.RemoveWithOptions(machine.RemoveOptions{})
+}
+
+func (d *Driver) RemoveWithOptions(opts machine.RemoveOptions) error {
 	machineName := d.vmConfig.Name
 	fmt.Printf("Removing machine %q\n", machineName)
 	dirs, err := env.GetMachineDirs(d.vmProvider.VMType())
@@ -511,7 +515,7 @@ func (d *Driver) Remove() error {
 		return err
 	}
 
-	if err := shim.Remove(d.vmConfig, d.vmProvider, dirs, machine.RemoveOptions{}); err != nil {
+	if err := shim.Remove(d.vmConfig, d.vmProvider, dirs, opts); err != nil {
 		return err
 	}
 	//newMachineEvent(events.Remove, events.Event{Name: vmName})

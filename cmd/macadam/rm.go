@@ -26,6 +26,10 @@ func init() {
 	registry.Commands = append(registry.Commands, registry.CliCommand{
 		Command: rmCmd,
 	})
+
+	flags := rmCmd.Flags()
+	formatFlagName := "force"
+	flags.BoolVarP(&destroyOptions.Force, formatFlagName, "f", false, "Stop and do not prompt before rming")
 }
 
 func rm(_ *cobra.Command, args []string) error {
@@ -34,5 +38,5 @@ func rm(_ *cobra.Command, args []string) error {
 		return nil
 	}
 
-	return driver.Remove()
+	return driver.RemoveWithOptions(destroyOptions)
 }
