@@ -52,7 +52,7 @@ bin/macadam-linux-arm64: force-build
 bin/macadam-windows-amd64: GOOS=windows
 bin/macadam-windows-amd64: GOARCH=amd64
 bin/macadam-windows-amd64: force-build
-	go build -tags "$(WINBUILDTAGS)" -ldflags "$(VERSION_LDFLAGS)" -o bin/macadam-$(GOOS)-$(GOARCH) ./cmd/macadam
+	go build -tags "$(WINBUILDTAGS)" -ldflags "$(VERSION_LDFLAGS)" -o bin/macadam-$(GOOS)-$(GOARCH).exe ./cmd/macadam
 
 .PHONY: lint
 lint: $(TOOLS_BINDIR)/golangci-lint
