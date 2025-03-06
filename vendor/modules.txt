@@ -624,6 +624,22 @@ github.com/letsencrypt/boulder/identifier
 github.com/letsencrypt/boulder/probs
 github.com/letsencrypt/boulder/revocation
 github.com/letsencrypt/boulder/strictyaml
+# github.com/lima-vm/go-qcow2reader v0.6.0
+## explicit; go 1.22
+github.com/lima-vm/go-qcow2reader
+github.com/lima-vm/go-qcow2reader/align
+github.com/lima-vm/go-qcow2reader/convert
+github.com/lima-vm/go-qcow2reader/image
+github.com/lima-vm/go-qcow2reader/image/parallels
+github.com/lima-vm/go-qcow2reader/image/qcow2
+github.com/lima-vm/go-qcow2reader/image/raw
+github.com/lima-vm/go-qcow2reader/image/stub
+github.com/lima-vm/go-qcow2reader/image/vdi
+github.com/lima-vm/go-qcow2reader/image/vhdx
+github.com/lima-vm/go-qcow2reader/image/vmdk
+github.com/lima-vm/go-qcow2reader/image/vpc
+github.com/lima-vm/go-qcow2reader/log
+github.com/lima-vm/go-qcow2reader/lru
 # github.com/lufia/plan9stats v0.0.0-20240909124753-873cd0166683
 ## explicit; go 1.16
 github.com/lufia/plan9stats

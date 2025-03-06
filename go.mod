@@ -8,6 +8,7 @@ require (
 	github.com/containers/storage v1.57.2-0.20250214174508-b6f6fb27264f
 	github.com/crc-org/crc/v2 v2.47.0
 	github.com/crc-org/machine v0.0.0-20240926103419-a943b47fd48b
+	github.com/lima-vm/go-qcow2reader v0.6.0
 	github.com/spf13/cobra v1.9.1
 )
 
