@@ -49,10 +49,6 @@ func init() {
 
 	flags := initCmd.Flags()
 
-	ImageFlagName := "image"
-	flags.StringVar(&initOptsFromFlags.Image, ImageFlagName, "", "Bootable image for machine")
-	_ = initCmd.RegisterFlagCompletionFunc(ImageFlagName, completion.AutocompleteDefault)
-
 	MachineNameFlagName := "machine-name"
 	flags.StringVar(&initOptsFromFlags.Name, MachineNameFlagName, defaultMachineName, "Name for the machine")
 	_ = initCmd.RegisterFlagCompletionFunc(MachineNameFlagName, completion.AutocompleteDefault)
