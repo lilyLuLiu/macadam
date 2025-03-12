@@ -61,7 +61,7 @@ func init() {
 	_ = initCmd.RegisterFlagCompletionFunc(SSHIdentityPathFlagName, completion.AutocompleteDefault)
 
 	UsernameFlagName := "username"
-	flags.StringVar(&initOptsFromFlags.Username, UsernameFlagName, "", "Username used in image")
+	flags.StringVar(&initOptsFromFlags.Username, UsernameFlagName, "core", "Username used in image")
 	_ = initCmd.RegisterFlagCompletionFunc(UsernameFlagName, completion.AutocompleteDefault)
 
 	cpusFlagName := "cpus"
