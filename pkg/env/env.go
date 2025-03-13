@@ -4,6 +4,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/containers/podman/v5/pkg/machine/define"
+	provider2 "github.com/containers/podman/v5/pkg/machine/provider"
 	"github.com/containers/storage/pkg/homedir"
 )
 
@@ -35,6 +37,20 @@ func SetupEnvironment() error {
 	err = os.Setenv("PODMAN_RUNTIME_DIR", "macadam")
 	if err != nil {
 		return err
+	}
+
+	provider, err := provider2.Get()
+	if err != nil {
+		return err
+	}
+
+	// set the prefix that will be used when creating the wsl distro
+	// if this is not set, every dist will have "podman" as prefix
+	if provider.VMType() == define.WSLVirt {
+		err = os.Setenv("PODMAN_TOOL_PREFIX", "macadam")
+		if err != nil {
+			return err
+		}
 	}
 
 	return nil

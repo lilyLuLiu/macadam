@@ -179,6 +179,6 @@ require (
 	tags.cncf.io/container-device-interface v0.8.1 // indirect
 )
 
-replace github.com/containers/podman/v5 => github.com/cfergeau/podman/v5 v5.0.0-20250312163251-08cc816ea0e1
+replace github.com/containers/podman/v5 => github.com/cfergeau/podman/v5 v5.0.0-20250318103339-fc7e59cbee4a
 
 replace github.com/crc-org/machine => github.com/cfergeau/machine v0.0.0-20241127155529-1b8b9b8d1078
