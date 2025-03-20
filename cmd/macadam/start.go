@@ -5,13 +5,13 @@ package main
 import (
 	"fmt"
 
-	"github.com/crc-org/macadam/cmd/macadam/registry"
-	macadam "github.com/crc-org/macadam/pkg/machinedriver"
 	ldefine "github.com/containers/podman/v5/libpod/define"
 	"github.com/containers/podman/v5/pkg/machine"
 	"github.com/containers/podman/v5/pkg/machine/provider"
 	"github.com/containers/podman/v5/pkg/machine/shim"
 	"github.com/containers/podman/v5/pkg/machine/vmconfigs"
+	"github.com/crc-org/macadam/cmd/macadam/registry"
+	macadam "github.com/crc-org/macadam/pkg/machinedriver"
 	"github.com/spf13/cobra"
 )
 
@@ -63,10 +63,7 @@ func start(_ *cobra.Command, args []string) error {
 		return err
 	}
 	if vmConfig == nil {
-		err = shim.Init(*initOpts, vmProvider)
-		if err != nil {
-			return err
-		}
+		return fmt.Errorf("VM %s does not exist", machineName)
 	}
 
 	return macadam.Start(vmConfig, vmProvider)
