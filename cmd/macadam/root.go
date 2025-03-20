@@ -5,11 +5,14 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"github.com/containers/podman/v5/libpod/define"
+	"github.com/crc-org/macadam/cmd/macadam/common"
 	"github.com/crc-org/macadam/cmd/macadam/registry"
 	"github.com/crc-org/macadam/pkg/cmdline"
 	"github.com/crc-org/macadam/pkg/env"
-	"github.com/containers/podman/v5/libpod/define"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 )
 
@@ -56,8 +59,8 @@ var (
 		PersistentPreRunE:     machinePreRunE,
 	}
 
-	// defaultLogLevel = "warn"
-	// logLevel        = defaultLogLevel
+	defaultLogLevel = "warn"
+	logLevel        = defaultLogLevel
 	// dockerConfig    = ""
 	// debug           bool
 
@@ -71,6 +74,19 @@ var (
 )
 
 func init() {
+	// Hooks are called before PersistentPreRunE(). These hooks affect global
+	// state and are executed after processing the command-line, but before
+	// actually running the command.
+	cobra.OnInitialize(
+		loggingHook,
+	)
+
+	pFlags := rootCmd.PersistentFlags()
+
+	logLevelFlagName := "log-level"
+	pFlags.StringVar(&logLevel, logLevelFlagName, logLevel, fmt.Sprintf("Log messages above specified level (%s)", strings.Join(common.LogLevels, ", ")))
+	_ = rootCmd.RegisterFlagCompletionFunc(logLevelFlagName, common.AutocompleteLogLevel)
+
 	rootCmd.SetUsageTemplate(usageTemplate)
 }
 
@@ -87,4 +103,29 @@ func Execute() {
 
 func machinePreRunE(c *cobra.Command, args []string) error {
 	return env.SetupEnvironment()
+}
+
+func loggingHook() {
+	var found bool
+	for _, l := range common.LogLevels {
+		if l == strings.ToLower(logLevel) {
+			found = true
+			break
+		}
+	}
+	if !found {
+		fmt.Fprintf(os.Stderr, "Log Level %q is not supported, choose from: %s\n", logLevel, strings.Join(common.LogLevels, ", "))
+		os.Exit(1)
+	}
+
+	level, err := logrus.ParseLevel(logLevel)
+	if err != nil {
+		fmt.Fprint(os.Stderr, err.Error())
+		os.Exit(1)
+	}
+	logrus.SetLevel(level)
+
+	if logrus.IsLevelEnabled(logrus.InfoLevel) {
+		logrus.Infof("%s filtering at log level %s", os.Args[0], logrus.GetLevel())
+	}
 }
