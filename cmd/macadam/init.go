@@ -52,7 +52,7 @@ func init() {
 
 	flags := initCmd.Flags()
 
-	MachineNameFlagName := "machine-name"
+	MachineNameFlagName := "name"
 	flags.StringVar(&initOptsFromFlags.Name, MachineNameFlagName, defaultMachineName, "Name for the machine")
 	_ = initCmd.RegisterFlagCompletionFunc(MachineNameFlagName, completion.AutocompleteDefault)
 
