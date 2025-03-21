@@ -6,9 +6,11 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/containers/common/pkg/completion"
+	provider2 "github.com/containers/podman/v5/pkg/machine/provider"
+	"github.com/containers/podman/v5/pkg/machine/vmconfigs"
 	"github.com/crc-org/macadam/cmd/macadam/registry"
 	macadam "github.com/crc-org/macadam/pkg/machinedriver"
-	"github.com/containers/common/pkg/completion"
 	"github.com/crc-org/machine/libmachine/state"
 	"github.com/spf13/cobra"
 )
@@ -35,6 +37,7 @@ type listFlagType struct {
 }
 
 type ListReporter struct {
+	Name           string
 	Image          string
 	Created        string
 	Running        bool
@@ -60,12 +63,18 @@ func init() {
 }
 
 func list(cmd *cobra.Command, args []string) error {
-	driver, err := macadam.GetDriverByMachineName(defaultMachineName)
+	provider, err := provider2.Get()
 	if err != nil {
-		return nil
+		return err
+	}
+	providers := []vmconfigs.VMProvider{provider}
+
+	listDrivers, err := macadam.List(providers)
+	if err != nil {
+		return err
 	}
 
-	machineReporter := toMachineFormat(driver)
+	machineReporter := toMachineFormat(listDrivers)
 	b, err := json.MarshalIndent(machineReporter, "", "    ")
 	if err != nil {
 		return err
@@ -87,31 +96,34 @@ func strUint(u uint64) string {
 	return strconv.FormatUint(u, 10)
 }
 
-func toMachineFormat(d *macadam.Driver) []ListReporter {
-	machineResponses := make([]ListReporter, 0, 1)
+func toMachineFormat(drivers []*macadam.Driver) []ListReporter {
+	machineResponses := []ListReporter{}
 
-	vm := d.GetVmConfig()
+	for _, d := range drivers {
+		vm := d.GetVmConfig()
 
-	vmState, err := d.GetState()
-	if err != nil {
-		return machineResponses
+		vmState, err := d.GetState()
+		if err != nil {
+			return machineResponses
+		}
+
+		response := new(ListReporter)
+		response.Name = vm.Name
+		response.Image = vm.ImagePath.Path
+		response.Running = vmState == state.Running
+		response.LastUp = strTime(vm.LastUp)
+		response.Created = strTime(vm.Created)
+		response.CPUs = vm.Resources.CPUs
+		response.Memory = strUint(uint64(vm.Resources.Memory.ToBytes()))
+		response.DiskSize = strUint(uint64(vm.Resources.DiskSize.ToBytes()))
+		response.Port = vm.SSH.Port
+		response.RemoteUsername = vm.SSH.RemoteUsername
+		response.IdentityPath = vm.SSH.IdentityPath
+		response.Starting = vm.Starting
+		response.VMType = d.GetVMType().String()
+
+		machineResponses = append(machineResponses, *response)
 	}
-
-	response := new(ListReporter)
-	response.Image = vm.ImagePath.Path
-	response.Running = vmState == state.Running
-	response.LastUp = strTime(vm.LastUp)
-	response.Created = strTime(vm.Created)
-	response.CPUs = vm.Resources.CPUs
-	response.Memory = strUint(uint64(vm.Resources.Memory.ToBytes()))
-	response.DiskSize = strUint(uint64(vm.Resources.DiskSize.ToBytes()))
-	response.Port = vm.SSH.Port
-	response.RemoteUsername = vm.SSH.RemoteUsername
-	response.IdentityPath = vm.SSH.IdentityPath
-	response.Starting = vm.Starting
-	response.VMType = d.GetVMType().String()
-
-	machineResponses = append(machineResponses, *response)
 
 	return machineResponses
 }

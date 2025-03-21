@@ -624,3 +624,30 @@ func (d *Driver) GetVmConfig() *vmconfigs.MachineConfig {
 func (d *Driver) GetVMType() define.VMType {
 	return d.vmProvider.VMType()
 }
+
+func List(vmstubbers []vmconfigs.VMProvider) ([]*Driver, error) {
+	var (
+		drivers []*Driver
+	)
+
+	for _, s := range vmstubbers {
+		dirs, err := env.GetMachineDirs(s.VMType())
+		if err != nil {
+			return nil, err
+		}
+		mcs, err := vmconfigs.LoadMachinesInDir(dirs)
+		if err != nil {
+			return nil, err
+		}
+		for name := range mcs {
+			driver, err := GetDriverByMachineName(name)
+			if err != nil {
+				return nil, err
+			}
+
+			drivers = append(drivers, driver)
+		}
+	}
+
+	return drivers, nil
+}
