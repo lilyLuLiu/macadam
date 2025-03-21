@@ -8,11 +8,11 @@ import (
 
 var (
 	stopCmd = &cobra.Command{
-		Use:     "stop",
+		Use:     "stop [options] [MACHINE]",
 		Short:   "Stop an existing machine",
 		Long:    "Stop a managed virtual machine ",
 		RunE:    stop,
-		Args:    cobra.MaximumNArgs(0),
+		Args:    cobra.MaximumNArgs(1),
 		Example: `macadam stop`,
 	}
 )
@@ -24,7 +24,12 @@ func init() {
 }
 
 func stop(cmd *cobra.Command, args []string) error {
-	driver, err := macadam.GetDriverByMachineName(defaultMachineName)
+	machineName := defaultMachineName
+	if len(args) > 0 && len(args[0]) > 0 {
+		machineName = args[0]
+	}
+
+	driver, err := macadam.GetDriverByMachineName(machineName)
 	if err != nil {
 		return nil
 	}
