@@ -19,10 +19,10 @@ var (
 	startCmd = &cobra.Command{
 		Use:     "start [options] [MACHINE]",
 		Short:   "Start an existing machine",
-		Long:    "Start a managed virtual machine ",
+		Long:    "Start a managed virtual machine",
 		RunE:    start,
 		Args:    cobra.MaximumNArgs(1),
-		Example: `macadam start podman-machine-default`,
+		Example: `macadam start`,
 	}
 	startOpts = machine.StartOptions{}
 )
