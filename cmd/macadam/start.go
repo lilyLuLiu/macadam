@@ -5,7 +5,6 @@ package main
 import (
 	"fmt"
 
-	ldefine "github.com/containers/podman/v5/libpod/define"
 	"github.com/containers/podman/v5/pkg/machine"
 	"github.com/containers/podman/v5/pkg/machine/provider"
 	"github.com/containers/podman/v5/pkg/machine/shim"
@@ -42,15 +41,8 @@ func init() {
 
 func start(_ *cobra.Command, args []string) error {
 	machineName := defaultMachineName
-	if len(args) > 0 {
-		if len(args[0]) > maxMachineNameSize {
-			return fmt.Errorf("machine name %q must be %d characters or less", args[0], maxMachineNameSize)
-		}
+	if len(args) > 0 && len(args[0]) > 0 {
 		machineName = args[0]
-
-		if !ldefine.NameRegex.MatchString(machineName) {
-			return fmt.Errorf("invalid name %q: %w", machineName, ldefine.RegexError)
-		}
 	}
 	initOpts := macadam.DefaultInitOpts(machineName)
 	//initOpts.ImagePuller = ...
