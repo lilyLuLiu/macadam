@@ -7,7 +7,6 @@ import (
 
 	"github.com/containers/podman/v5/pkg/machine/define"
 	"github.com/containers/podman/v5/pkg/machine/env"
-	macadam "github.com/crc-org/macadam/pkg/machinedriver"
 
 	"github.com/containers/common/pkg/completion"
 	"github.com/containers/podman/v5/cmd/podman/utils"
@@ -102,10 +101,6 @@ func ssh(cmd *cobra.Command, args []string) error {
 		if err != nil {
 			return fmt.Errorf("vm %s not found: %w", vmName, err)
 		}
-	}
-
-	if !validVM && sshOpts.Username == "" {
-		sshOpts.Username = macadam.DefaultSSHUser
 	}
 
 	state, err := provider.State(mc, false)
