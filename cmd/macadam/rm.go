@@ -40,7 +40,7 @@ func rm(_ *cobra.Command, args []string) error {
 
 	driver, err := macadam.GetDriverByMachineName(machineName)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	return driver.RemoveWithOptions(destroyOptions)
