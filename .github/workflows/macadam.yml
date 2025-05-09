@@ -64,6 +64,45 @@ jobs:
       - name: Test
         run: make test
 
+  e2e:
+    needs: build
+    strategy:
+      matrix:
+        os:
+        - ubuntu-24.04
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Download binary artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: macadam binaries
+          path: ./bin
+      - name: Setup qemu (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt update
+          sudo apt install -y qemu-kvm
+          sudo chmod 666 /dev/kvm
+      - name: Download gvproxy
+        if: runner.os == 'Linux'
+        run: |
+          wget https://github.com/containers/gvisor-tap-vsock/releases/download/v0.8.6/gvproxy-linux-amd64 -O ${{ github.workspace }}/tools/gvproxy
+          chmod +x ${{ github.workspace }}/tools/gvproxy
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: 'oldstable'
+      - name: Grant execute permissions
+        if: runner.os == 'Linux'
+        run: chmod +x ./bin/*
+      - name: Test
+        env:
+          CONTAINERS_HELPER_BINARY_DIR: ${{ github.workspace }}/tools
+        run: make e2e
 
   lint:
     needs: build

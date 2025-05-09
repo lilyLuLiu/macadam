@@ -30,6 +30,9 @@ check: lint vendorcheck test
 test:
 	@go test -tags "$(BUILDTAGS)" -v ./pkg/...
 
+e2e:
+	@go test -tags "$(BUILDTAGS)" -v ./test/e2e/...
+
 clean:
 	@rm -rf bin
 
