@@ -42,11 +42,12 @@ var _ = Describe("Macadam", func() {
 	It("creates a new CentOS VM, starts it, ssh in and cleans", func() {
 		// verify there is no vm
 		var machineResponses []ListReporter
-		session := macadamTest.Macadam([]string{"list"})
+		session := macadamTest.Macadam([]string{"list", "--format", "json"})
 		session.WaitWithDefaultTimeout()
 		Expect(session).Should(gexec.Exit())
-		list := session.OutputToString()
-		Expect(list).Should(Equal(""))
+		err := json.Unmarshal(session.Out.Contents(), &machineResponses)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(len(machineResponses)).Should(Equal(0))
 
 		// download CentOS image
 		centosProvider := osprovider.NewCentosProvider()
@@ -59,11 +60,10 @@ var _ = Describe("Macadam", func() {
 		Expect(session).Should(gexec.Exit())
 
 		// check the list command returns one item
-		session = macadamTest.Macadam([]string{"list"})
+		session = macadamTest.Macadam([]string{"list", "--format", "json"})
 		session.WaitWithDefaultTimeout()
 		Expect(session).Should(gexec.Exit())
-		list = session.OutputToString()
-		err = json.Unmarshal([]byte(list), &machineResponses)
+		err = json.Unmarshal(session.Out.Contents(), &machineResponses)
 		Expect(err).NotTo(HaveOccurred())
 		Expect(len(machineResponses)).Should(Equal(1))
 
@@ -90,11 +90,12 @@ var _ = Describe("Macadam", func() {
 		session.WaitWithDefaultTimeout()
 		Expect(session).Should(gexec.Exit())
 
-		session = macadamTest.Macadam([]string{"list"})
+		session = macadamTest.Macadam([]string{"list", "--format", "json"})
 		session.WaitWithDefaultTimeout()
 		Expect(session).Should(gexec.Exit())
-		list = session.OutputToString()
-		Expect(list).Should(Equal(""))
+		err = json.Unmarshal(session.Out.Contents(), &machineResponses)
+		Expect(err).NotTo(HaveOccurred())
+		Expect(len(machineResponses)).Should(Equal(0))
 	})
 
 })
