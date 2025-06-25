@@ -116,6 +116,11 @@ func ssh(cmd *cobra.Command, args []string) error {
 		username = mc.SSH.RemoteUsername
 	}
 
-	err = machine.CommonSSHShell(username, mc.SSH.IdentityPath, mc.Name, mc.SSH.Port, sshOpts.Args)
+	address := "localhost"
+	if mc.IPAddress != "" {
+		address = mc.IPAddress
+	}
+
+	err = machine.CommonSSHShellWithAddress(username, mc.SSH.IdentityPath, mc.Name, address, mc.SSH.Port, sshOpts.Args)
 	return utils.HandleOSExecError(err)
 }

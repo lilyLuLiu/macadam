@@ -17,28 +17,39 @@ import (
 // and a port
 // TODO This should probably be taught about an machineconfig to reduce input
 func CommonSSH(username, identityPath, name string, sshPort int, inputArgs []string) error {
-	return commonBuiltinSSH(username, identityPath, name, sshPort, inputArgs, true, os.Stdin)
+	return commonBuiltinSSH(username, identityPath, name, "localhost", sshPort, inputArgs, true, os.Stdin)
+}
+
+func CommonSSHShellWithAddress(username, identityPath, name, address string, sshPort int, inputArgs []string) error {
+	if address == "" {
+		address = "localhost"
+	}
+	return commonNativeSSH(username, identityPath, name, address, sshPort, inputArgs, os.Stdin)
 }
 
 func CommonSSHShell(username, identityPath, name string, sshPort int, inputArgs []string) error {
-	return commonNativeSSH(username, identityPath, name, sshPort, inputArgs, os.Stdin)
+	return CommonSSHShellWithAddress(username, identityPath, name, "localhost", sshPort, inputArgs)
 }
 
 func CommonSSHSilent(username, identityPath, name string, sshPort int, inputArgs []string) error {
-	return commonBuiltinSSH(username, identityPath, name, sshPort, inputArgs, false, nil)
+	return commonBuiltinSSH(username, identityPath, name, "localhost", sshPort, inputArgs, false, nil)
 }
 
 func CommonSSHWithStdin(username, identityPath, name string, sshPort int, inputArgs []string, stdin io.Reader) error {
-	return commonBuiltinSSH(username, identityPath, name, sshPort, inputArgs, true, stdin)
+	return commonBuiltinSSH(username, identityPath, name, "localhost", sshPort, inputArgs, true, stdin)
 }
 
-func commonBuiltinSSH(username, identityPath, name string, sshPort int, inputArgs []string, passOutput bool, stdin io.Reader) error {
+func CommonSSHSilentWithAddress(username, identityPath, name, address string, sshPort int, inputArgs []string) error {
+	return commonBuiltinSSH(username, identityPath, name, address, sshPort, inputArgs, false, nil)
+}
+
+func commonBuiltinSSH(username, identityPath, name, address string, sshPort int, inputArgs []string, passOutput bool, stdin io.Reader) error {
 	config, err := createConfig(username, identityPath)
 	if err != nil {
 		return err
 	}
 
-	client, err := ssh.Dial("tcp", fmt.Sprintf("localhost:%d", sshPort), config)
+	client, err := ssh.Dial("tcp", fmt.Sprintf("%s:%d", address, sshPort), config)
 	if err != nil {
 		return err
 	}
@@ -109,8 +120,8 @@ func createConfig(user string, identityPath string) (*ssh.ClientConfig, error) {
 	}, nil
 }
 
-func commonNativeSSH(username, identityPath, name string, sshPort int, inputArgs []string, stdin io.Reader) error {
-	sshDestination := username + "@localhost"
+func commonNativeSSH(username, identityPath, name, address string, sshPort int, inputArgs []string, stdin io.Reader) error {
+	sshDestination := username + "@" + address
 	port := strconv.Itoa(sshPort)
 	interactive := true
 

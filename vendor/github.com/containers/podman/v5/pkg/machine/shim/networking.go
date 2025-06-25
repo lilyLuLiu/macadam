@@ -92,7 +92,7 @@ func startHostForwarder(mc *vmconfigs.MachineConfig, provider vmconfigs.VMProvid
 
 func startNetworking(mc *vmconfigs.MachineConfig, provider vmconfigs.VMProvider) (string, machine.APIForwardingState, error) {
 	// Check if SSH port is in use, and reassign if necessary
-	if !ports.IsLocalPortAvailable(mc.SSH.Port) {
+	if provider.UserModeNetworkEnabled(mc) && !ports.IsLocalPortAvailable(mc.SSH.Port) {
 		logrus.Warnf("detected port conflict on machine ssh port [%d], reassigning", mc.SSH.Port)
 		if err := reassignSSHPort(mc, provider); err != nil {
 			return "", 0, err
@@ -100,7 +100,7 @@ func startNetworking(mc *vmconfigs.MachineConfig, provider vmconfigs.VMProvider)
 	}
 
 	// Provider has its own networking code path (e.g. WSL)
-	if provider.UseProviderNetworkSetup() {
+	if provider.UseProviderNetworkSetup(mc) {
 		return "", 0, provider.StartNetworking(mc, nil)
 	}
 
@@ -145,7 +145,8 @@ func conductVMReadinessCheck(mc *vmconfigs.MachineConfig, maxBackoffs int, backo
 			sshError = ErrNotRunning
 			continue
 		}
-		if !isListening(mc.SSH.Port) {
+		address := mc.GetAddress()
+		if !isListening(address, mc.SSH.Port) {
 			sshError = ErrSSHNotListening
 			continue
 		}
@@ -158,7 +159,7 @@ func conductVMReadinessCheck(mc *vmconfigs.MachineConfig, maxBackoffs int, backo
 		// CoreOS users have reported the same observation but
 		// the underlying source of the issue remains unknown.
 
-		if sshError = machine.CommonSSHSilent(mc.SSH.RemoteUsername, mc.SSH.IdentityPath, mc.Name, mc.SSH.Port, []string{"true"}); sshError != nil {
+		if sshError = machine.CommonSSHSilentWithAddress(mc.SSH.RemoteUsername, mc.SSH.IdentityPath, mc.Name, address, mc.SSH.Port, []string{"true"}); sshError != nil {
 			logrus.Debugf("SSH readiness check for machine failed: %v", sshError)
 			continue
 		}
@@ -218,9 +219,9 @@ func reassignSSHPort(mc *vmconfigs.MachineConfig, provider vmconfigs.VMProvider)
 	return nil
 }
 
-func isListening(port int) bool {
+func isListening(address string, port int) bool {
 	// Check if we can dial it
-	conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", "127.0.0.1", port), 10*time.Millisecond)
+	conn, err := net.DialTimeout("tcp", fmt.Sprintf("%s:%d", address, port), 10*time.Millisecond)
 	if err != nil {
 		return false
 	}

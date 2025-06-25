@@ -175,11 +175,6 @@ func Init(opts machineDefine.InitOptions, mp vmconfigs.VMProvider) error {
 
 	logrus.Debugf("--> imagePath is %q", imagePath.GetPath())
 
-	ignitionFile, err := mc.IgnitionFile()
-	if err != nil {
-		return err
-	}
-
 	uid := os.Getuid()
 	if uid == -1 { // windows compensation
 		uid = 1000
@@ -195,32 +190,6 @@ func Init(opts machineDefine.InitOptions, mp vmconfigs.VMProvider) error {
 		}
 	}
 
-	ignBuilder := ignition.NewIgnitionBuilder(ignition.DynamicIgnition{
-		Name:      userName,
-		Key:       sshKey,
-		TimeZone:  opts.TimeZone,
-		UID:       uid,
-		VMName:    opts.Name,
-		VMType:    mp.VMType(),
-		WritePath: ignitionFile.GetPath(),
-		Rootful:   opts.Rootful,
-	})
-
-	// If the user provides an ignition file, we need to
-	// copy it into the conf dir
-	if len(opts.IgnitionPath) > 0 {
-		err = ignBuilder.BuildWithIgnitionFile(opts.IgnitionPath)
-
-		if err != nil {
-			return err
-		}
-	} else {
-		err = ignBuilder.GenerateIgnitionConfig()
-		if err != nil {
-			return err
-		}
-	}
-
 	if len(opts.PlaybookPath) > 0 {
 		f, err := os.Open(opts.PlaybookPath)
 		if err != nil {
@@ -232,14 +201,6 @@ func Init(opts machineDefine.InitOptions, mp vmconfigs.VMProvider) error {
 		}
 
 		playbookDest := fmt.Sprintf("/home/%s/%s", userName, "playbook.yaml")
-
-		if mp.VMType() != machineDefine.WSLVirt {
-			err = ignBuilder.AddPlaybook(string(s), playbookDest, userName)
-			if err != nil {
-				return err
-			}
-		}
-
 		mc.Ansible = &vmconfigs.AnsibleConfig{
 			PlaybookPath: playbookDest,
 			Contents:     string(s),
@@ -247,22 +208,64 @@ func Init(opts machineDefine.InitOptions, mp vmconfigs.VMProvider) error {
 		}
 	}
 
-	readyIgnOpts, err := mp.PrepareIgnition(mc, &ignBuilder)
-	if err != nil {
-		return err
-	}
+	var ignBuilder *ignition.IgnitionBuilder
+	if !opts.CloudInit {
+		ignitionFile, err := mc.IgnitionFile()
+		if err != nil {
+			return err
+		}
 
-	readyUnitFile, err := ignition.CreateReadyUnitFile(mp.VMType(), readyIgnOpts)
-	if err != nil {
-		return err
-	}
+		tmpIgnBuilder := ignition.NewIgnitionBuilder(ignition.DynamicIgnition{
+			Name:      userName,
+			Key:       sshKey,
+			TimeZone:  opts.TimeZone,
+			UID:       uid,
+			VMName:    opts.Name,
+			VMType:    mp.VMType(),
+			WritePath: ignitionFile.GetPath(),
+			Rootful:   opts.Rootful,
+		})
+		ignBuilder = &tmpIgnBuilder
 
-	readyUnit := ignition.Unit{
-		Enabled:  ignition.BoolToPtr(true),
-		Name:     "ready.service",
-		Contents: ignition.StrToPtr(readyUnitFile),
+		// If the user provides an ignition file, we need to
+		// copy it into the conf dir
+		if len(opts.IgnitionPath) > 0 {
+			err = ignBuilder.BuildWithIgnitionFile(opts.IgnitionPath)
+
+			if err != nil {
+				return err
+			}
+		} else {
+			err = ignBuilder.GenerateIgnitionConfig()
+			if err != nil {
+				return err
+			}
+		}
+
+		if mp.VMType() != machineDefine.WSLVirt && mc.Ansible != nil {
+			err = ignBuilder.AddPlaybook(mc.Ansible.Contents, mc.Ansible.PlaybookPath, userName)
+			if err != nil {
+				return err
+			}
+		}
+
+		readyIgnOpts, err := mp.PrepareIgnition(mc, ignBuilder)
+		if err != nil {
+			return err
+		}
+
+		readyUnitFile, err := ignition.CreateReadyUnitFile(mp.VMType(), readyIgnOpts)
+		if err != nil {
+			return err
+		}
+
+		readyUnit := ignition.Unit{
+			Enabled:  ignition.BoolToPtr(true),
+			Name:     "ready.service",
+			Contents: ignition.StrToPtr(readyUnitFile),
+		}
+		ignBuilder.WithUnit(readyUnit)
 	}
-	ignBuilder.WithUnit(readyUnit)
 
 	// TODO AddSSHConnectionToPodmanSocket could take an machineconfig instead
 	if mc.Capabilities.GetForwardSockets() {
@@ -280,12 +283,12 @@ func Init(opts machineDefine.InitOptions, mp vmconfigs.VMProvider) error {
 		callbackFuncs.Add(cleanup)
 	}
 
-	err = mp.CreateVM(createOpts, mc, &ignBuilder)
+	err = mp.CreateVM(createOpts, mc, ignBuilder)
 	if err != nil {
 		return err
 	}
 
-	if len(opts.IgnitionPath) == 0 {
+	if len(opts.IgnitionPath) == 0 && !opts.CloudInit {
 		if err := ignBuilder.Build(); err != nil {
 			return err
 		}
@@ -426,7 +429,7 @@ func stopLocked(mc *vmconfigs.MachineConfig, mp vmconfigs.VMProvider, dirs *mach
 	}
 
 	// Stop GvProxy and remove PID file
-	if !mp.UseProviderNetworkSetup() {
+	if !mp.UseProviderNetworkSetup(mc) {
 		gvproxyPidFile, err := dirs.RuntimeDir.AppendToNewVMFile("gvproxy.pid", nil)
 		if err != nil {
 			return err
@@ -625,7 +628,7 @@ func Start(mc *vmconfigs.MachineConfig, mp vmconfigs.VMProvider, dirs *machineDe
 	}
 
 	// Provider is responsible for waiting
-	if mp.UseProviderNetworkSetup() {
+	if mp.UseProviderNetworkSetup(mc) {
 		return nil
 	}
 

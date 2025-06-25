@@ -52,7 +52,7 @@ require (
 	github.com/containers/conmon v2.0.20+incompatible // indirect
 	github.com/containers/gvisor-tap-vsock v0.8.6 // indirect
 	github.com/containers/image/v5 v5.36.0 // indirect
-	github.com/containers/libhvee v0.10.0 // indirect
+	github.com/containers/libhvee v0.10.1-0.20250623125428-422aa7ddc0e5 // indirect
 	github.com/containers/libtrust v0.0.0-20230121012942-c1716e8a8d01 // indirect
 	github.com/containers/luksy v0.0.0-20250217190002-40bd943d93b8 // indirect
 	github.com/containers/ocicrypt v1.2.1 // indirect
@@ -189,6 +189,6 @@ require (
 	tags.cncf.io/container-device-interface/specs-go v1.0.0 // indirect
 )
 
-replace github.com/containers/podman/v5 => github.com/cfergeau/podman/v5 v5.0.0-20250612142329-e5103c59144d
+replace github.com/containers/podman/v5 => github.com/cfergeau/podman/v5 v5.0.0-20250723135928-052bdcf53a71
 
 replace github.com/crc-org/machine => github.com/cfergeau/machine v0.0.0-20241127155529-1b8b9b8d1078
