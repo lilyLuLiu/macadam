@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log/slog"
 	"os/exec"
-	"runtime"
 
 	"github.com/containers/common/pkg/config"
 	"github.com/containers/podman/v5/pkg/machine"
@@ -18,12 +17,12 @@ func RunPreflights(provider vmconfigs.VMProvider) error {
 		return fmt.Errorf("invalid gvproxy binary: %w", err)
 	}
 
-	if err := checkVfkitVersion(); err != nil {
+	if err := checkVfkitVersion(provider); err != nil {
 		return fmt.Errorf("invalid vfkit binary: %w", err)
 	}
 
-	if err := checkSupportedProviders(provider); err != nil {
-		return err
+	if err := checkKrunKitAvailability(provider); err != nil {
+		return fmt.Errorf("missing krunkit binary: %w", err)
 	}
 
 	return nil
@@ -43,8 +42,8 @@ func checkGvproxyVersion(provider vmconfigs.VMProvider) error {
 
 // macadam/podman needs a vfkit binary which supports the --cloud-init
 // argument to inject ssh keys in RHEL cloud images
-func checkVfkitVersion() error {
-	if runtime.GOOS != "darwin" {
+func checkVfkitVersion(provider vmconfigs.VMProvider) error {
+	if provider.VMType() != define.AppleHvVirt {
 		return nil
 	}
 	if err := checkBinaryArg("vfkit", "--cloud-init"); err != nil {
@@ -53,14 +52,14 @@ func checkVfkitVersion() error {
 	return nil
 }
 
-func checkSupportedProviders(provider vmconfigs.VMProvider) error {
-	vmType := provider.VMType()
-	switch vmType {
-	case define.LibKrun:
-		return fmt.Errorf("%s VM provider is unsupported, only wsl2 and hyperv on Windows, vfkit on macOS and qemu on linux are supported", vmType.String())
-	default:
+func checkKrunKitAvailability(provider vmconfigs.VMProvider) error {
+	if provider.VMType() != define.LibKrun {
 		return nil
 	}
+	if err := checkBinaryArg("krunkit", "--version"); err != nil {
+		return fmt.Errorf("%w, please install krunkit", err)
+	}
+	return nil
 }
 
 func checkBinaryArg(binaryName, arg string) error {

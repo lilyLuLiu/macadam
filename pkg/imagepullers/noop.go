@@ -93,10 +93,12 @@ func doCopyFile(src, dest string, vmType define.VMType) error {
 	}
 	defer destF.Close()
 
-	if vmType == define.AppleHvVirt {
+	switch vmType {
+	case define.AppleHvVirt, define.LibKrun:
 		return copyFileMac(srcF, destF)
+	default:
+		return copyFile(srcF, destF)
 	}
-	return copyFile(srcF, destF)
 }
 
 func copyFileMac(src, dest *os.File) error {
