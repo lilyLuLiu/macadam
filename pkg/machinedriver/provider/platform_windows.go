@@ -7,19 +7,22 @@ import (
 	hypervPkg "github.com/containers/podman/v5/pkg/machine/hyperv"
 	"github.com/containers/podman/v5/pkg/machine/vmconfigs"
 	wslPkg "github.com/containers/podman/v5/pkg/machine/wsl"
+	"github.com/sirupsen/logrus"
 )
 
-const wsl = "wsl"
-const hyperv = "hyperv"
+var defaultProvider = define.WSLVirt
 
 func GetProviderOrDefault(name string) (vmconfigs.VMProvider, error) {
-	if name == "" {
-		name = define.WSLVirt.String()
+	resolvedVMType, err := define.ParseVMType(name, defaultProvider)
+	if err != nil {
+		return nil, err
 	}
-	switch name {
-	case wsl:
+
+	logrus.Debugf("Using macadam with `%s` virtualization provider", resolvedVMType.String())
+	switch resolvedVMType {
+	case define.WSLVirt:
 		return new(wslPkg.WSLStubber), nil
-	case hyperv:
+	case define.HyperVVirt:
 		return new(hypervPkg.HyperVStubber), nil
 	default:
 		return nil, fmt.Errorf("unknown provider `%s`. Valid providers are: %v", name, GetProviders())
@@ -27,9 +30,9 @@ func GetProviderOrDefault(name string) (vmconfigs.VMProvider, error) {
 }
 
 func GetProviders() []string {
-	return []string{wsl, hyperv}
+	return []string{define.WSLVirt.String(), define.HyperVVirt.String()}
 }
 
 func GetDefaultProvider() string {
-	return wsl
+	return defaultProvider.String()
 }
