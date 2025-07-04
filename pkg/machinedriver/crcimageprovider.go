@@ -35,12 +35,10 @@ var (
 	MachineInstanceDir = filepath.Join(MachineBaseDir, "machines")
 )
 
-func NewCrcImagePuller(vmType define.VMType) (*CrcImagePuller, error) {
-	crcImage := CrcImagePuller{
+func NewCrcImagePuller(vmType define.VMType) *CrcImagePuller {
+	return &CrcImagePuller{
 		vmType: vmType,
 	}
-
-	return &crcImage, nil
 }
 
 /* TODO: Might be better to pass an actual URI and to strip the "file://" part from it */

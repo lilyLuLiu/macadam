@@ -207,10 +207,7 @@ func (d *Driver) Create() error {
 	*/
 
 	initOpts := d.initOpts()
-	crcPuller, err := NewCrcImagePuller(d.vmProvider.VMType())
-	if err != nil {
-		return nil
-	}
+	crcPuller := NewCrcImagePuller(d.vmProvider.VMType())
 	crcPuller.SetSourceURI(d.ImageSourcePath)
 	initOpts.ImagePuller = crcPuller
 
