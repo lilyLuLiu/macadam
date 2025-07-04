@@ -10,9 +10,9 @@ import (
 	"github.com/containers/podman/v5/cmd/podman/utils"
 	"github.com/containers/podman/v5/pkg/machine/define"
 	"github.com/containers/podman/v5/pkg/machine/env"
-	providerpkg "github.com/containers/podman/v5/pkg/machine/provider"
 	"github.com/containers/podman/v5/pkg/machine/vmconfigs"
 	"github.com/crc-org/macadam/cmd/macadam/registry"
+	provider2 "github.com/crc-org/macadam/pkg/machinedriver/provider"
 	"github.com/spf13/cobra"
 )
 
@@ -51,11 +51,11 @@ func inspect(cmd *cobra.Command, args []string) error {
 	var (
 		errs utils.OutputErrors
 	)
-	provider, err := providerpkg.Get()
+	vmProvider, err := provider2.GetProviderOrDefault(provider)
 	if err != nil {
-		return nil
+		return err
 	}
-	dirs, err := env.GetMachineDirs(provider.VMType())
+	dirs, err := env.GetMachineDirs(vmProvider.VMType())
 	if err != nil {
 		return err
 	}
@@ -71,7 +71,7 @@ func inspect(cmd *cobra.Command, args []string) error {
 			continue
 		}
 
-		state, err := provider.State(mc, false)
+		state, err := vmProvider.State(mc, false)
 		if err != nil {
 			return err
 		}
@@ -84,7 +84,7 @@ func inspect(cmd *cobra.Command, args []string) error {
 			Resources:          mc.Resources,
 			SSHConfig:          mc.SSH,
 			State:              state,
-			UserModeNetworking: provider.UserModeNetworkEnabled(mc),
+			UserModeNetworking: vmProvider.UserModeNetworkEnabled(mc),
 		}
 		if ii.LastUp.IsZero() {
 			ii.LastUp = nil
