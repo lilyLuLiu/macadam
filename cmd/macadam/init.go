@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/containers/common/pkg/completion"
+	"github.com/containers/common/pkg/strongunits"
 	ldefine "github.com/containers/podman/v5/libpod/define"
 	"github.com/containers/podman/v5/pkg/machine/define"
 	"github.com/containers/podman/v5/pkg/machine/shim"
@@ -16,6 +17,7 @@ import (
 	macadam "github.com/crc-org/macadam/pkg/machinedriver"
 	provider2 "github.com/crc-org/macadam/pkg/machinedriver/provider"
 	"github.com/crc-org/macadam/pkg/preflights"
+	"github.com/docker/go-units"
 	"github.com/spf13/cobra"
 )
 
@@ -173,6 +175,22 @@ func initMachine(cmd *cobra.Command, args []string) error {
 
 	if !ldefine.NameRegex.MatchString(machineName) {
 		return fmt.Errorf("invalid name %q: %w", machineName, ldefine.RegexError)
+	}
+
+	// Check if the disk image exists and is not larger than the specified disk size
+	if diskImage == "" {
+		return fmt.Errorf("disk image is required")
+	}
+
+	fileInfo, err := os.Stat(diskImage)
+	if err != nil {
+		return fmt.Errorf("failed to stat disk image %q: %w", diskImage, err)
+	}
+
+	diskSizeInBytes := int64(strongunits.GiB(initOptsFromFlags.DiskSize).ToBytes())
+	if fileInfo.Size() > diskSizeInBytes {
+		return fmt.Errorf("disk image %s (size: %s) is larger than the expected maximum size of %s",
+			diskImage, units.HumanSize(float64(fileInfo.Size())), units.HumanSize(float64(diskSizeInBytes)))
 	}
 
 	puller := imagepullers.NewNoopImagePuller(machineName, vmProvider.VMType())
