@@ -38,12 +38,12 @@ func (puller *NoopImagePuller) SetSourceURI(sourcePath string) {
 
 func imageExtension(vmType define.VMType, sourceURI string) string {
 	switch vmType {
-	case define.AppleHvVirt:
-		return ".raw"
 	case define.WSLVirt:
 		return ".tar.gz"
-	default:
+	case define.QemuVirt, define.HyperVVirt:
 		return filepath.Ext(sourceURI)
+	default:
+		return "." + vmType.ImageFormat().Kind()
 	}
 }
 
