@@ -38,12 +38,12 @@ func (puller *NoopImagePuller) SetSourceURI(sourcePath string) {
 
 func imageExtension(vmType define.VMType, sourceURI string) string {
 	switch vmType {
-	case define.AppleHvVirt:
-		return ".raw"
 	case define.WSLVirt:
 		return ".tar.gz"
-	default:
+	case define.QemuVirt, define.HyperVVirt:
 		return filepath.Ext(sourceURI)
+	default:
+		return "." + vmType.ImageFormat().Kind()
 	}
 }
 
@@ -93,10 +93,12 @@ func doCopyFile(src, dest string, vmType define.VMType) error {
 	}
 	defer destF.Close()
 
-	if vmType == define.AppleHvVirt {
+	switch vmType {
+	case define.AppleHvVirt, define.LibKrun:
 		return copyFileMac(srcF, destF)
+	default:
+		return copyFile(srcF, destF)
 	}
-	return copyFile(srcF, destF)
 }
 
 func copyFileMac(src, dest *os.File) error {

@@ -8,16 +8,20 @@ import (
 	"github.com/containers/podman/v5/pkg/machine/define"
 	qemuPkg "github.com/containers/podman/v5/pkg/machine/qemu"
 	"github.com/containers/podman/v5/pkg/machine/vmconfigs"
+	"github.com/sirupsen/logrus"
 )
 
-const qemu = "qemu"
+var defaultProvider = define.QemuVirt
 
 func GetProviderOrDefault(name string) (vmconfigs.VMProvider, error) {
-	if name == "" {
-		name = define.QemuVirt.String()
+	resolvedVMType, err := define.ParseVMType(name, defaultProvider)
+	if err != nil {
+		return nil, err
 	}
-	switch name {
-	case qemu:
+
+	logrus.Debugf("Using macadam with `%s` virtualization provider", resolvedVMType.String())
+	switch resolvedVMType {
+	case define.QemuVirt:
 		return new(qemuPkg.QEMUStubber), nil
 	default:
 		return nil, fmt.Errorf("unknown provider `%s`. Valid providers are: %v", name, GetProviders())
@@ -25,9 +29,9 @@ func GetProviderOrDefault(name string) (vmconfigs.VMProvider, error) {
 }
 
 func GetProviders() []string {
-	return []string{qemu}
+	return []string{define.QemuVirt.String()}
 }
 
 func GetDefaultProvider() string {
-	return qemu
+	return defaultProvider.String()
 }
