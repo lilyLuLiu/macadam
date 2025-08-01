@@ -39,6 +39,10 @@ func (puller *NoopImagePuller) SetSourceURI(sourcePath string) {
 func imageExtension(vmType define.VMType, sourceURI string) string {
 	switch vmType {
 	case define.WSLVirt:
+		ext := filepath.Ext(sourceURI)
+		if ext == ".wsl" {
+			return ".wsl"
+		}
 		return ".tar.gz"
 	case define.QemuVirt, define.HyperVVirt:
 		return filepath.Ext(sourceURI)
