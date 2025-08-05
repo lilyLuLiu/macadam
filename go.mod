@@ -5,7 +5,7 @@ go 1.23.3
 require (
 	github.com/containers/common v0.64.0
 	github.com/containers/podman/v5 v5.3.1
-	github.com/containers/storage v1.59.0
+	github.com/containers/storage v1.59.1
 	github.com/crc-org/crc/v2 v2.52.0
 	github.com/crc-org/machine v0.0.0-20240926103419-a943b47fd48b
 	github.com/lima-vm/go-qcow2reader v0.6.0
