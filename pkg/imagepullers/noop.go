@@ -41,7 +41,12 @@ func (puller *NoopImagePuller) LocalPath() (*define.VMFile, error) {
 		return nil, err
 	}
 
-	vmFile, err := dirs.DataDir.AppendToNewVMFile(fmt.Sprintf("%s-%s%s", puller.machineName, puller.vmType.String(), imageExtension(puller.vmType, puller.sourceURI)), nil)
+	imageExt, err := imageExtension(puller.vmType, puller.sourceURI)
+	if err != nil {
+		return nil, err
+	}
+
+	vmFile, err := dirs.DataDir.AppendToNewVMFile(fmt.Sprintf("%s-%s%s", puller.machineName, puller.vmType.String(), imageExt), nil)
 	if err != nil {
 		return nil, err
 	}

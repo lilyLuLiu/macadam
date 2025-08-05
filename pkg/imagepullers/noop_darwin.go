@@ -5,6 +5,8 @@ package imagepullers
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/containers/podman/v5/pkg/machine/define"
 
@@ -15,8 +17,13 @@ import (
 	"github.com/lima-vm/go-qcow2reader/image/raw"
 )
 
-func imageExtension(vmType define.VMType, _ string) string {
-	return "." + vmType.ImageFormat().Kind()
+func imageExtension(_ define.VMType, sourceURI string) (string, error) {
+	ext := strings.ToLower(filepath.Ext(sourceURI))
+	if ext != ".qcow2" && ext != ".raw" {
+		return "", fmt.Errorf("unsupported image extension %s; supported formats are .qcow2 and .raw", ext)
+	}
+	// Destination for AppleHvVirt/LibKrun is raw; copyFileMac converts qcow2 -> raw.
+	return ".raw", nil
 }
 
 func doCopyFile(src *os.File, dest string) error {

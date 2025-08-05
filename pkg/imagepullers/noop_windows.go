@@ -9,21 +9,32 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 
 	"github.com/containers/podman/v5/pkg/machine/define"
 	"github.com/sirupsen/logrus"
 )
 
-func imageExtension(vmType define.VMType, sourceURI string) string {
+func imageExtension(vmType define.VMType, sourceURI string) (string, error) {
+	ext := strings.ToLower(filepath.Ext(sourceURI))
 	switch vmType {
 	case define.WSLVirt:
-		ext := filepath.Ext(sourceURI)
-		if ext == ".wsl" {
-			return ".wsl"
+		switch ext {
+		case ".wsl":
+			return ".wsl", nil
+		case ".gz":
+			if strings.HasSuffix(strings.ToLower(sourceURI), ".tar.gz") {
+				return ".tar.gz", nil
+			}
 		}
-		return ".tar.gz"
+		return "", fmt.Errorf("unsupported WSL image extension %s; supported formats are .wsl and .tar.gz", ext)
+	case define.HyperVVirt:
+		if ext != ".vhdx" && ext != ".vhd" {
+			return "", fmt.Errorf("unsupported Hyper-V image extension %s; supported formats are .vhdx and .vhd", ext)
+		}
+		return ext, nil
 	default:
-		return filepath.Ext(sourceURI)
+		return "", fmt.Errorf("unsupported VM type: '%s'. Supported types are 'WSL' and 'Hyper-V'.", vmType)
 	}
 }
 
