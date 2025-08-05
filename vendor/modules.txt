@@ -145,7 +145,7 @@ github.com/containers/buildah/pkg/sshagent
 github.com/containers/buildah/pkg/util
 github.com/containers/buildah/pkg/volumes
 github.com/containers/buildah/util
-# github.com/containers/common v0.64.0
+# github.com/containers/common v0.64.1
 ## explicit; go 1.23.3
 github.com/containers/common/internal
 github.com/containers/common/internal/attributedstring
@@ -218,7 +218,7 @@ github.com/containers/conmon/runner/config
 # github.com/containers/gvisor-tap-vsock v0.8.6
 ## explicit; go 1.23.0
 github.com/containers/gvisor-tap-vsock/pkg/types
-# github.com/containers/image/v5 v5.36.0
+# github.com/containers/image/v5 v5.36.1
 ## explicit; go 1.23.3
 github.com/containers/image/v5/copy
 github.com/containers/image/v5/directory
