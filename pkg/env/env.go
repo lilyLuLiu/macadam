@@ -33,8 +33,8 @@ func SetupEnvironment(provider vmconfigs.VMProvider) error {
 	}
 
 	// set the directory to be used when calculating runtime path
-	// run -> <runHome>/macadam (runHome changes based on the OS used e.g. runHome == /run)
-	err = os.Setenv("PODMAN_RUNTIME_DIR", "macadam")
+	// run -> <runHome>/macadam/<provider> (runHome changes based on the OS used e.g. runHome == /run)
+	err = os.Setenv("PODMAN_RUNTIME_DIR", filepath.Join("macadam", provider.VMType().String()))
 	if err != nil {
 		return err
 	}
