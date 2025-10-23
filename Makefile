@@ -21,7 +21,7 @@ build: bin/macadam-$(DEFAULT_GOOS)-$(DEFAULT_GOARCH)
 TOOLS_DIR := tools
 include tools/tools.mk
 
-cross-non-darwin: bin/macadam-linux-amd64 bin/macadam-linux-arm64 bin/macadam-windows-amd64
+cross-non-darwin: bin/macadam-linux-amd64 bin/macadam-linux-arm64 bin/macadam-windows-amd64 bin/macadam-windows-arm64
 
 cross: cross-non-darwin bin/macadam-darwin-amd64 bin/macadam-darwin-arm64
 
@@ -61,6 +61,11 @@ bin/macadam-linux-arm64: force-build
 bin/macadam-windows-amd64: GOOS=windows
 bin/macadam-windows-amd64: GOARCH=amd64
 bin/macadam-windows-amd64: force-build
+	GOARCH=$(GOARCH) GOOS=$(GOOS) go build -tags "$(BUILDTAGS)" -ldflags "$(VERSION_LDFLAGS)" -o bin/macadam-$(GOOS)-$(GOARCH).exe ./cmd/macadam
+
+bin/macadam-windows-arm64: GOOS=windows
+bin/macadam-windows-arm64: GOARCH=arm64
+bin/macadam-windows-arm64: force-build
 	GOARCH=$(GOARCH) GOOS=$(GOOS) go build -tags "$(BUILDTAGS)" -ldflags "$(VERSION_LDFLAGS)" -o bin/macadam-$(GOOS)-$(GOARCH).exe ./cmd/macadam
 
 .PHONY: lint
