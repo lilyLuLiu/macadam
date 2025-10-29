@@ -1,0 +1,16 @@
+#cloud-config
+hostname: macadam-test
+packages:
+  - git         
+  - vim
+users:
+  - name: macadamtest
+    #ssh-authorized-keys:
+    #  - [sshkey]
+    sudo: ALL=(ALL) NOPASSWD:ALL
+    shell: /bin/bash
+chpasswd:
+  list: |
+    macadamtest:macadamtest
+  expire: false
+ssh_pwauth: true
