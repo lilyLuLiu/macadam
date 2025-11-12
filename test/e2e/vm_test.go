@@ -39,7 +39,7 @@ var _ = Describe("Macadam", func() {
 		os.RemoveAll(tempDir)
 	})
 
-	It("creates a new CentOS VM, starts it, ssh in and cleans", func() {
+	It("creates a new CentOS VM, starts it, ssh in and cleans",Label("linux","darwin"), func() {
 		// verify there is no vm
 		var machineResponses []ListReporter
 		session := macadamTest.Macadam([]string{"list", "--format", "json"})

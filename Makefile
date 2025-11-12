@@ -31,7 +31,7 @@ test:
 	@go test -tags "$(BUILDTAGS)" -v ./pkg/...
 
 e2e:
-	@go test -tags "$(BUILDTAGS)" -v ./test/e2e/...
+	@go test -tags "$(BUILDTAGS)"  -v ./test/e2e/... --ginkgo.label-filter=$(DEFAULT_GOOS)
 
 clean:
 	@rm -rf bin

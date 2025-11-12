@@ -6,7 +6,7 @@ import (
 	"github.com/onsi/gomega/gexec"
 )
 
-var _ = Describe("Macadam starts", func() {
+var _ = Describe("Macadam starts",Label("windows","linux","darwin"), func() {
 
 	It("non-existing VM", func() {
 		session := macadamTest.Macadam([]string{"start", "123"})
