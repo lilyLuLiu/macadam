@@ -2,6 +2,8 @@ package osprovider
 
 import (
 	"fmt"
+	"path"
+	"runtime"
 
 	log "github.com/sirupsen/logrus"
 )
@@ -17,13 +19,17 @@ func NewCentosProvider() *CentosProvider {
 func (centos *CentosProvider) Fetch(destDir string) (string, error) {
 	log.Infof("downloading centos to %s", destDir)
 	arch := kernelArch()
+
 	centosURL := fmt.Sprintf("https://cloud.centos.org/centos/10-stream/%s/images/CentOS-Stream-GenericCloud-10-20250324.0.%s.qcow2", arch, arch)
 	file, err := downloadOS(destDir, centosURL)
 	if err != nil {
 		return "", err
 	}
-
 	centos.diskImage = file
-
-	return file, nil
+	if runtime.GOOS == "windows" {
+		convert_file := path.Join(destDir, "centos.VHD")
+		ConvertQcow2ToVDH(file, convert_file)
+		centos.diskImage = convert_file
+	}
+	return centos.diskImage, nil
 }
